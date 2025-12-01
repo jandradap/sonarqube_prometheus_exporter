@@ -1,6 +1,7 @@
 # It's importing the libraries that we need to use in this script.
 import json
 import logging
+import os
 import re
 import sys
 from datetime import datetime
@@ -24,6 +25,8 @@ logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelnam
 rootLogger = logging.getLogger()
 fileName = get_date_string(datetime.now())+'sonarqube_exporter'
 logPath = 'logs'
+if not os.path.exists(logPath):
+    os.makedirs(logPath)
 fileHandler = logging.FileHandler("{0}/{1}.log".format(logPath, fileName))
 fileHandler.setFormatter(logFormatter)
 
