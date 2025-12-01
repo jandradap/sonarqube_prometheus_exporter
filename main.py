@@ -6,6 +6,7 @@ import prometheus_client as prom
 from lib.analysis_metrics import (common_metrics, event_metrics, get_stat,
                                   rule_metrics)
 from lib.system_metrics import system_metric
+from lib.util import setup_logging
 from prometheus_client import start_http_server
 from sonarqube import SonarQubeClient
 
@@ -32,6 +33,7 @@ def schedule(minutes, task):
             print(e)
 
 def exporter_start():
+    setup_logging()
     # Printing the server address and port.
     print('Starting server http://{}:{}/metrics'.format(
     exporter_listen_host, exporter_listen_port))

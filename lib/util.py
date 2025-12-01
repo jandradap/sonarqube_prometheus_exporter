@@ -20,25 +20,27 @@ def get_date_string(date_object):
     """
     return rfc3339.rfc3339(date_object)
 
-# Configuring the logging handler.
-logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
-rootLogger = logging.getLogger()
-fileName = get_date_string(datetime.now())+'sonarqube_exporter'
-logPath = 'logs'
-if not os.path.exists(logPath):
-    os.makedirs(logPath)
-fileHandler = logging.FileHandler("{0}/{1}.log".format(logPath, fileName))
-fileHandler.setFormatter(logFormatter)
+def setup_logging():
+    # Configuring the logging handler.
+    logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
+    rootLogger = logging.getLogger()
+    fileName = get_date_string(datetime.now())+'sonarqube_exporter'
+    logPath = 'logs'
+    if not os.path.exists(logPath):
+        os.makedirs(logPath)
+    fileHandler = logging.FileHandler("{0}/{1}.log".format(logPath, fileName))
+    fileHandler.setFormatter(logFormatter)
 
-# To avoid duplicated logs.
-if (rootLogger.hasHandlers()):
-    rootLogger.handlers.clear()
-rootLogger.addHandler(fileHandler)
+    # To avoid duplicated logs.
+    if (rootLogger.hasHandlers()):
+        rootLogger.handlers.clear()
+    rootLogger.addHandler(fileHandler)
 
-consoleHandler = logging.StreamHandler(sys.stdout)
-consoleHandler.setFormatter(logFormatter)
-rootLogger.addHandler(consoleHandler)
-logging.getLogger().setLevel(logging.DEBUG)
+    consoleHandler = logging.StreamHandler(sys.stdout)
+    consoleHandler.setFormatter(logFormatter)
+    rootLogger.addHandler(consoleHandler)
+    logging.getLogger().setLevel(logging.DEBUG)
+
 logger = logging.getLogger()
 
 # Convert sr to json
@@ -108,4 +110,3 @@ def convert(string):
 
     if unit == 'TB':
         return num
-        
