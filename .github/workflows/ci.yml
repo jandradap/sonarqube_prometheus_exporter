@@ -88,3 +88,18 @@ jobs:
         ignore-unfixed: true
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH'
+
+    - name: Login to Quay
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ vars.QUAY_REGISTRY }}
+        username: ${{ secrets.QUAY_USERNAME }}
+        password: ${{ secrets.QUAY_PASSWORD }}
+
+    - name: Push to Quay
+      run: |
+        docker load --input /tmp/image.tar
+        IMAGE_TAG=${{ steps.sanitize.outputs.sanitized_ref_name }}
+        FULL_IMAGE_NAME=${{ vars.QUAY_REGISTRY }}/${{ vars.QUAY_IMAGE_NAME }}:$IMAGE_TAG
+        docker tag sonarqube-exporter:$IMAGE_TAG $FULL_IMAGE_NAME
+        docker push $FULL_IMAGE_NAME
