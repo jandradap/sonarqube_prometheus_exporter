@@ -5,7 +5,7 @@ on:
   pull_request:
 
 jobs:
-  lint:
+  lint-python:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -16,20 +16,43 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 yamllint
+        pip install flake8
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+  lint-yaml:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install yamllint
     - name: Lint with yamllint
       run: |
         yamllint .
+
+  lint-docker:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
     - name: Lint with hadolint
       uses: hadolint/hadolint-action@v3.1.0
       with:
         dockerfile: Dockerfile
+
+  lint-shell:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
     - name: Lint with shellcheck
       uses: ludeeus/action-shellcheck@master
 
@@ -51,7 +74,8 @@ jobs:
         pytest --cov=lib --cov=main tests/
 
   build:
-    needs: [lint, test]
+    needs: [lint-python, lint-yaml, lint-docker, lint-shell, test]
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -79,6 +103,17 @@ jobs:
         name: docker-image
         path: /tmp/image.tar
 
+  trivy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: docker-image
+        path: /tmp
+
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
       with:
@@ -89,6 +124,25 @@ jobs:
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH'
 
+  push:
+    needs: trivy
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: docker-image
+        path: /tmp
+
+    - name: Sanitize branch name
+      id: sanitize
+      run: |
+        # Replace / with - in the branch name
+        SANITIZED_REF_NAME=$(echo "${{ github.ref_name }}" | tr '/' '-')
+        echo "sanitized_ref_name=${SANITIZED_REF_NAME}" >> $GITHUB_OUTPUT
+
     - name: Login to Quay
       uses: docker/login-action@v3
       with:
@@ -96,9 +150,12 @@ jobs:
         username: ${{ secrets.QUAY_USERNAME }}
         password: ${{ secrets.QUAY_PASSWORD }}
 
-    - name: Push to Quay
+    - name: Load Docker image
       run: |
         docker load --input /tmp/image.tar
+
+    - name: Push to Quay
+      run: |
         IMAGE_TAG=${{ steps.sanitize.outputs.sanitized_ref_name }}
         FULL_IMAGE_NAME=${{ vars.QUAY_REGISTRY }}/${{ vars.QUAY_IMAGE_NAME }}:$IMAGE_TAG
         docker tag sonarqube-exporter:$IMAGE_TAG $FULL_IMAGE_NAME
