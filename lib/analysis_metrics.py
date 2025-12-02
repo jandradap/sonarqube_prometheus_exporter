@@ -13,6 +13,7 @@ def get_stat(metrics):
             g = Enum(metric['key'], metric['name'], ['project_key', 'domain'], states=['ERROR', 'OK'])
         else:
             print('metrics is not supported')
+            continue
         stats.append({'stat':g, 'metric':metric})
     return stats
     
