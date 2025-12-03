@@ -24,10 +24,9 @@ class TestAnalysisMetrics(unittest.TestCase):
         measures_period = [{'periods': [{'value': 20}]}]
         self.assertEqual(get_value(measures_period), 20)
 
-        # Case 3: Error handling
+        # Case 3: Error handling - should return 0 now
         measures_error = [{'other': 30}]
-        with self.assertRaises(UnboundLocalError): # The code raises UnboundLocalError because value is not assigned
-            get_value(measures_error)
+        self.assertEqual(get_value(measures_error), 0)
 
     def test_set_metrics(self):
         mock_prom_metric = MagicMock()
