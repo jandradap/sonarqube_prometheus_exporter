@@ -26,15 +26,18 @@ def setup_logging():
     rootLogger = logging.getLogger()
     fileName = get_date_string(datetime.now())+'sonarqube_exporter'
     logPath = 'logs'
-    if not os.path.exists(logPath):
-        os.makedirs(logPath)
-    fileHandler = logging.FileHandler("{0}/{1}.log".format(logPath, fileName))
-    fileHandler.setFormatter(logFormatter)
-
     # To avoid duplicated logs.
     if (rootLogger.hasHandlers()):
         rootLogger.handlers.clear()
-    rootLogger.addHandler(fileHandler)
+
+    try:
+        if not os.path.exists(logPath):
+            os.makedirs(logPath)
+        fileHandler = logging.FileHandler("{0}/{1}.log".format(logPath, fileName))
+        fileHandler.setFormatter(logFormatter)
+        rootLogger.addHandler(fileHandler)
+    except (PermissionError, OSError) as e:
+        print("Warning: Could not set up file logging due to permission error: {0}. Logging to console only.".format(e))
 
     consoleHandler = logging.StreamHandler(sys.stdout)
     consoleHandler.setFormatter(logFormatter)
