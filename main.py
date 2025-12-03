@@ -50,7 +50,7 @@ def exporter_start():
     projects = list(sonar.projects.search_projects())
 
     # Getting a list of metrics from the SonarQube server.
-    metrics = list(sonar.metrics.search_metrics())
+    metrics = list(sonar.metrics.search_metrics()['metrics'])
 
     list_stat = get_stat(metrics)
     def metrics_task():

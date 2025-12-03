@@ -42,7 +42,9 @@ def setup_logging():
     consoleHandler = logging.StreamHandler(sys.stdout)
     consoleHandler.setFormatter(logFormatter)
     rootLogger.addHandler(consoleHandler)
-    logging.getLogger().setLevel(logging.DEBUG)
+
+    log_level = os.environ.get('LOG_LEVEL', 'DEBUG').upper()
+    logging.getLogger().setLevel(getattr(logging, log_level, logging.DEBUG))
 
 logger = logging.getLogger()
 
