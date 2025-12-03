@@ -37,7 +37,7 @@ def setup_logging():
         fileHandler.setFormatter(logFormatter)
         rootLogger.addHandler(fileHandler)
     except (PermissionError, OSError) as e:
-        print("Warning: Could not set up file logging due to permission error: {0}. Logging to console only.".format(e))
+        print("Info: File logging disabled due to permissions: {0}. Logging to console only.".format(e))
 
     consoleHandler = logging.StreamHandler(sys.stdout)
     consoleHandler.setFormatter(logFormatter)
@@ -71,7 +71,7 @@ def get_json(element, json_data):
     :param json_data: The JSON data that we're going to be working with
     :return: The value of the key in the json_data dictionary.
     """
-    if element in json_data:
+    if isinstance(json_data, dict) and element in json_data:
         return json_data[element]
     else:
         return 0

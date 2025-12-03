@@ -1,7 +1,9 @@
 # Importing the functions from the lib.util file and the prometheus_client file.
+import logging
 from lib.util import get_json, sr_to_json
 from prometheus_client import Enum, Gauge, Info
 
+logger = logging.getLogger(__name__)
 
 def get_stat(metrics):
     stats = []
@@ -12,7 +14,7 @@ def get_stat(metrics):
         elif metric['key'] == 'alert_status':
             g = Enum(metric['key'], metric['name'], ['project_key', 'domain'], states=['ERROR', 'OK'])
         else:
-            print('metrics is not supported')
+            logger.debug('Metric type %s for key %s is not supported', metric.get('type'), metric.get('key'))
             continue
         stats.append({'stat':g, 'metric':metric})
     return stats
@@ -44,7 +46,7 @@ def set_metrics(sonar_issue_key, sonar_issue_domain, sonar_issue_type, value, pr
             domain=sonar_issue_domain,
         ).state(value)
     else:
-        print('metrics is not supported')
+        logger.debug('Metric type %s for key %s is not supported', sonar_issue_type, sonar_issue_key)
 
 def common_metrics(projects, sonar, stats):
 # Getting the metrics from sonarqube and setting the metrics in prometheus.

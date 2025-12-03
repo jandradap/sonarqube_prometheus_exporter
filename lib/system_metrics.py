@@ -241,22 +241,28 @@ def system_metric(sonarqube_server, sonarqube_token):
 
 # Statistics
   statistics = get_json('Statistics', data)
-  total_of_user = get_json('userCount', statistics)
-  total_of_user_metric.set(total_of_user)
+  if statistics:
+      total_of_user = get_json('userCount', statistics)
+      total_of_user_metric.set(total_of_user)
 
-  total_of_project = get_json('projectCount', statistics)
-  total_of_project_metric.set(total_of_project)
+      total_of_project = get_json('projectCount', statistics)
+      total_of_project_metric.set(total_of_project)
 
-  total_line_of_code = get_json('ncloc', statistics)
-  total_line_of_code_metric.set(total_line_of_code)
+      total_line_of_code = get_json('ncloc', statistics)
+      total_line_of_code_metric.set(total_line_of_code)
 
-  total_of_plugins = get_json('plugins', statistics)
-  total_of_plugins_metric.set(len(total_of_plugins))
+      total_of_plugins = get_json('plugins', statistics)
+      if isinstance(total_of_plugins, list):
+          total_of_plugins_metric.set(len(total_of_plugins))
+      else:
+          total_of_plugins_metric.set(0)
 
-  project_count_by_language = get_json('projectCountByLanguage', statistics)
-  for c in project_count_by_language:
-    project_count_by_language_metric.labels(language=c['language']).set(c['count'])
+      project_count_by_language = get_json('projectCountByLanguage', statistics)
+      if isinstance(project_count_by_language, list):
+          for c in project_count_by_language:
+              project_count_by_language_metric.labels(language=c['language']).set(c['count'])
 
-  ncloc_count_by_language = get_json('nclocByLanguage', statistics)
-  for c in ncloc_count_by_language:
-    ncloc_count_by_language_metric.labels(language=c['language']).set(c['ncloc'])
+      ncloc_count_by_language = get_json('nclocByLanguage', statistics)
+      if isinstance(ncloc_count_by_language, list):
+          for c in ncloc_count_by_language:
+              ncloc_count_by_language_metric.labels(language=c['language']).set(c['ncloc'])
