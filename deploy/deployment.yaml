@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarqube-exporter
+  labels:
+    app: sonarqube-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonarqube-exporter
+  template:
+    metadata:
+      labels:
+        app: sonarqube-exporter
+    spec:
+      containers:
+        - name: sonarqube-exporter
+          image: quay.io/jandradap/sonarqube-prometheus-exporter:main
+          ports:
+            - containerPort: 8198
+              name: metrics
+          envFrom:
+            - configMapRef:
+                name: sonarqube-exporter-config
+            - secretRef:
+                name: sonarqube-exporter-secret
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi

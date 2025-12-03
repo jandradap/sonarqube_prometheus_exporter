@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonarqube-exporter
+  labels:
+    app: sonarqube-exporter
+spec:
+  selector:
+    app: sonarqube-exporter
+  ports:
+    - protocol: TCP
+      port: 8198
+      targetPort: 8198
+      name: metrics

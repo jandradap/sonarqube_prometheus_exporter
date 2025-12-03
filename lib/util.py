@@ -10,6 +10,7 @@ import pandas as pd
 import requests
 import rfc3339
 
+logger = logging.getLogger(__name__)
 
 def get_date_string(date_object):
     """
@@ -46,8 +47,6 @@ def setup_logging():
     log_level = os.environ.get('LOG_LEVEL', 'DEBUG').upper()
     logging.getLogger().setLevel(getattr(logging, log_level, logging.DEBUG))
 
-logger = logging.getLogger()
-
 # Convert sr to json
 def sr_to_json(series):
     """
@@ -71,19 +70,30 @@ def get_json(element, json_data):
     :param json_data: The JSON data that we're going to be working with
     :return: The value of the key in the json_data dictionary.
     """
+    logger.debug(f"Extracting '{element}' from json_data")
     if isinstance(json_data, dict) and element in json_data:
-        return json_data[element]
+        value = json_data[element]
+        logger.debug(f"Found '{element}': {str(value)[:100]}...") # Log first 100 chars
+        return value
     else:
+        logger.debug(f"'{element}' not found or json_data is not a dict. Returning 0.")
         return 0
 
 def get_data(url, token):
 # Getting the data from the url and converting it to JSON.
+  logger.debug(f"Starting request to URL: {url}")
   session = requests.Session()
   session.auth = token, ''
   call = getattr(session, 'get')
-  res = call(url)
-  data = json.loads(res.content)
-  return data
+  try:
+      res = call(url)
+      logger.debug(f"Response status code: {res.status_code}")
+      logger.debug(f"Response content (truncated): {str(res.content)[:200]}...")
+      data = json.loads(res.content)
+      return data
+  except Exception as e:
+      logger.error(f"Error fetching data from {url}: {e}")
+      return 0
 
 def convert(string):
     """
@@ -92,10 +102,28 @@ def convert(string):
     :param string: The string to be converted
     :return: The number of bytes in the string.
     """
+    logger.debug(f"Converting string: {string}")
+    if isinstance(string, (int, float)):
+        logger.debug(f"Input is already a number: {string}")
+        return int(string)
+
+    if not isinstance(string, str):
+        logger.debug(f"Input is not a string or number: {type(string)}. Returning 0.")
+        return 0
+
     value = re.search(r'([0-9]+)', string)
     unit = re.search(r'([A-Z]?B)', string)
 
+    if not value:
+         logger.debug("No number found in string. Returning 0.")
+         return 0
+
     num = int(value.group())
+
+    if not unit:
+        logger.debug("No unit found in string. Assuming bytes.")
+        return num
+
     unit = unit.group()
     if unit == 'B':
         return num
@@ -115,3 +143,5 @@ def convert(string):
 
     if unit == 'TB':
         return num
+
+    return num

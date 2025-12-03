@@ -1,0 +1,14 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: sonarqube-exporter
+  labels:
+    app: sonarqube-exporter
+spec:
+  selector:
+    matchLabels:
+      app: sonarqube-exporter
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s

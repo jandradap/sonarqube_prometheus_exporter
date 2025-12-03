@@ -1,6 +1,9 @@
 # *|MARKER_CURSOR|*
+import logging
 from lib.util import convert, get_data, get_json
 from prometheus_client import Gauge, Info
+
+logger = logging.getLogger(__name__)
 
 # Defining the metrics that will be used in the script.
 
@@ -65,11 +68,16 @@ ncloc_count_by_language_metric = Gauge('ncloc_count_by_language', 'Line of code 
 
 def system_metric(sonarqube_server, sonarqube_token):
 # Getting the data from the sonarqube server and then it is getting the health of the server.
+  logger.debug("Starting system_metric collection")
   url = sonarqube_server+"/api/system/info"
   data = get_data(url, sonarqube_token)
 
+  if not data:
+       logger.debug("No data received from system/info API. Skipping system metrics.")
+       return
+
   health = get_json('Health', data)
-  health_info = {'health': health}
+  health_info = {'health': str(health)} # Ensure it is a string
   health_metric.info(health_info)
 
 # Web JVM State
@@ -266,3 +274,5 @@ def system_metric(sonarqube_server, sonarqube_token):
       if isinstance(ncloc_count_by_language, list):
           for c in ncloc_count_by_language:
               ncloc_count_by_language_metric.labels(language=c['language']).set(c['ncloc'])
+
+  logger.debug("Finished system_metric collection")
