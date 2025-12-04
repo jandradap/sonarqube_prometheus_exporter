@@ -19,19 +19,20 @@ exporter_polling_interval = int(os.environ.get('EXPORTER_POLLING_INTERVAL', 30))
 
 
 def schedule(seconds, task):
-    # A function that will run the task every minute.
+    # A function that will run the task based on the provided interval.
     while True:
         try:
             tic = time.time()
-            task()
+            try:
+                task()
+            except Exception as e:
+                print(e)
             duration = time.time() - tic
             sleep_time = max(seconds - int(duration), 1)
             print("Sleeping %d seconds" % sleep_time)
             time.sleep(max(sleep_time, 0))
         except (KeyboardInterrupt, SystemExit) as e:
             raise e
-        except Exception as e:
-            print(e)
 
 def exporter_start():
     setup_logging()

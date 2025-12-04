@@ -13,6 +13,8 @@ def get_stat(metrics):
             g = Gauge(metric['key'], metric['name'], ['project_key', 'domain'])
         elif metric['key'] == 'alert_status':
             g = Enum(metric['key'], metric['name'], ['project_key', 'domain'], states=['ERROR', 'OK'])
+        elif metric.get('type') in ['BOOL', 'DATA', 'STRING']:
+            continue
         else:
             logger.debug('Metric type %s for key %s is not supported', metric.get('type'), metric.get('key'))
             continue
@@ -60,6 +62,8 @@ def set_metrics(sonar_issue_key, sonar_issue_domain, sonar_issue_type, value, pr
             project_key=project_key, 
             domain=sonar_issue_domain,
         ).state(value)
+    elif sonar_issue_type in ['BOOL', 'DATA', 'STRING']:
+        return
     else:
         logger.debug('Metric type %s for key %s is not supported', sonar_issue_type, sonar_issue_key)
 
