@@ -274,5 +274,10 @@ def system_metric(sonarqube_server, sonarqube_token):
       if isinstance(ncloc_count_by_language, list):
           for c in ncloc_count_by_language:
               ncloc_count_by_language_metric.labels(language=c['language']).set(c['ncloc'])
+  else:
+      total_of_user_metric.set(0)
+      total_of_project_metric.set(0)
+      total_line_of_code_metric.set(0)
+      total_of_plugins_metric.set(0)
 
   logger.debug("Finished system_metric collection")
