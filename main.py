@@ -19,7 +19,7 @@ exporter_polling_interval = int(os.environ.get('EXPORTER_POLLING_INTERVAL', 30))
 
 
 def schedule(seconds, task):
-    # A function that will run the task every minute.
+    # A function that will run the task based on the provided interval.
     while True:
         try:
             tic = time.time()
